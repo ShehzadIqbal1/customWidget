@@ -19,16 +19,20 @@ const monday = mondaySdk();
 const App = () => {
   const [columns, setColumns] = useState([]);
   const [attributeNames, setAttributeNames] = useState([]);
+  const [selectedQuestion, setSelectedQuestions] = useState(
+    Array(10).fill(null)
+  );
   const [context, setContext] = useState();
   const [formatedData, setFormatedData] = useState([]);
   const [userText, setUserText] = useState("");
-  const [selectedQuestionsArray, setSelectedQuestionsArray] = useState(
-    Array(10).fill([]) // Only 10 slots, each starts empty
-  );
 
   const handleTextUpdate = (text) => {
     setUserText(text);
   };
+
+  useEffect(() => {
+    console.log(selectedQuestion, "selectedQuestions");
+  }, [selectedQuestion]);
 
   useEffect(() => {
     monday.listen("context", (res) => {
@@ -75,7 +79,6 @@ const App = () => {
         });
 
         console.log("Columns", columnNames);
-
         let columnData = {}; // Object to hold formatted data
         let allAttributes = new Set(); // Stores all unique response names
 
@@ -209,27 +212,13 @@ const App = () => {
   console.log("coulum data", columns);
 
   // Function to handle question change
-  const handleChange = (dropdownIndex, selectedQuestion) => {
-    console.log(  `dropdwon ${dropdownIndex} selectedQuestion ${selectedQuestion}` )
-    setSelectedQuestionsArray((prev) => {
-      const newSelection = [...prev];
+  const handleChange = (selectedQuestion) => {
+    console.log(selectedQuestion);
 
-      // If the selected question is already chosen, deselect it (toggle logic)
-      newSelection[dropdownIndex] =
-        newSelection[dropdownIndex] === selectedQuestion
-          ? null
-          : selectedQuestion;
-
-      return newSelection;
+    setFormatedData((prev) => {
+      const item = columns.filter((c) => c.name === selectedQuestion)[0];
+      return [...prev, item];
     });
-
-    // Update formattedData dynamically based on selected questions
-    setFormatedData(
-      selectedQuestionsArray
-        .filter(Boolean) // Remove null values
-        .map((selected) => columns.find((c) => c.name === selected))
-        .filter(Boolean) // Remove null values
-    );
   };
 
   return (
@@ -238,7 +227,7 @@ const App = () => {
         <BarChart
           width={window.innerWidth}
           height={window.innerHeight}
-          data={formatedData.length ? formatedData : []}
+          data={selectedQuestion}
           barSize={50}
           margin={{ bottom: 50 }}
         >
@@ -246,7 +235,6 @@ const App = () => {
             stroke={context?.theme === "light" ? "black" : "white"}
           />
           <XAxis dataKey="name" tick={<CustomXAxisTick />} interval={0} />
-
           <YAxis
             tick={{ fill: context?.theme === "light" ? "black" : "white" }}
             axisLine={{
@@ -267,39 +255,23 @@ const App = () => {
               <span style={{ marginRight: "10px" }}>{value}</span>
             )}
           />
-          {/* {formatedData.length > 0 &&
-  // Object.keys(formatedData[0]).map((key, index) => {
-  //   if (key !== "name") {
-  //     return (
-  //       <Bar key={key} dataKey={key} stackId="a" fill={colors[index]} />
-  //     );
-  //   }
-  //   return null;
-  // })} */}
-          {attributeNames
-            ? attributeNames.map((attribute, index) => {
-                return (
-                  <Bar dataKey={attribute} stackId="a" fill={colors[index]} />
-                );
-              })
-            : null}
-        </BarChart>{" "}
-        <p>{userText}</p>
+          {attributeNames &&
+            attributeNames.map((attribute, index) => (
+              <Bar
+                key={attribute}
+                dataKey={attribute}
+                stackId="a"
+                fill={colors[index]}
+              />
+            ))}
+        </BarChart>
       </div>
-      {[...Array(10)].map((_, index) => (
-        <DropDown
-          key={index}
-          dropdownIndex={index} // Pass dropdown index (0 to 9)
-          onChange={handleChange}
-          data={columns} // Pass question list
-        />
-      ))}
-
-      {/* <DropDown
+      <DropDown
         onChange={handleChange}
         onTextChange={handleTextUpdate}
         data={columns}
-      /> */}
+        setSelectedQuestions={setSelectedQuestions}
+      />
     </div>
   );
 };
