@@ -14,6 +14,7 @@
   "dependencies": {
     "@mondaycom/apps-sdk": "^2.1.2",
     "@vibe/core": "^3.30.0",
+    "monday-react-quickstart-app": "file:",
     "monday-sdk-js": "^0.5.5",
     "recharts": "^2.15.1"
   },
