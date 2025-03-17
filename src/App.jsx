@@ -1,4 +1,3 @@
-import React, { useMemo } from "react";
 import { useState, useEffect } from "react";
 import "./App.css";
 import mondaySdk from "monday-sdk-js";
@@ -14,7 +13,6 @@ import {
 } from "recharts";
 
 import DropDown from "./components/MyDropDown";
- 
 
 const monday = mondaySdk();
 
@@ -22,46 +20,15 @@ const App = () => {
   const [columns, setColumns] = useState([]);
   const [attributeNames, setAttributeNames] = useState([]);
   const [context, setContext] = useState();
-  //const [selectedQuestions, setSelectedQuestions] = useState([]);
-
-
-  const columnNames = useMemo(
-    () => ({
-      // single_select0__1:
-      //   "Please rate how effectively you were able to articulate and communicate your business's vision and goals BEFORE SQ1 Bootcamp",
-      // color__1:
-      //   " Please rate how effectively you were able to articulate and communicate your business's vision and goals AFTER SQ1 Bootcamp",
-      // single_select8__1:
-      //   "How much did you know about planning and managing business operations BEFORE SQ1 Bootcamp",
-      // color1__1:
-      //   "How much do you know about planning and managing business operations AFTER SQ1 Bootcamp",
-      // color2__1:
-      //   "How much did you know about how to market your business BEFORE SQ1 Bootcamp",
-      // color5__1:
-      //   "How much do you know about how to market your business AFTER SQ1 Bootcamp",
-      // color0__1:
-      //   "How much did you know about sales strategies BEFORE SQ1 Bootcamp",
-      // color19__1:
-      //   "How much do you know about sales strategies AFTER SQ1 Bootcamp",
-      // color9__1:
-      //   "How much did you know about planning and managing your business finances BEFORE SQ1 Bootcamp",
-      // color18__1:
-      //   "How much do you know about planning and managing your business finances AFTER SQ1 Bootcamp",
-      // color6__1:
-      //   "Please rate how familiar you were with the resources in the St. Louis entrepreneurial ecosystem BEFORE SQ1 Bootcamp",
-      // color04__1:
-      //   "Please rate how familiar you are with the resources in the St. Louis entrepreneurial ecosystem AFTER SQ1 Bootcamp",
-      // single_select1__1:
-      //   "Please rate how effectively you could establish and maintain meaningful connections within the entrepreneurial ecosystem BEFORE SQ1 Bootcamp",
-      // color61__1:
-      //   "Please rate how effectively you can establish and maintain meaningful connections within the entrepreneurial ecosystem AFTER SQ1 Bootcamp",
-      // color4__1:
-      //   "Please rate how effectively you could identify resources and reach out to them for guidance or help BEFORE SQ1 Bootcamp",
-      // color3__1:
-      //   "Please rate how effectively you can identify resources and reach out to them for guidance or help AFTER SQ1 Bootcamp",
-    }),
-    [],
+  const [formatedData, setFormatedData] = useState([]);
+  const [userText, setUserText] = useState("");
+  const [selectedQuestionsArray, setSelectedQuestionsArray] = useState(
+    Array(10).fill([]) // Only 10 slots, each starts empty
   );
+
+  const handleTextUpdate = (text) => {
+    setUserText(text);
+  };
 
   useEffect(() => {
     monday.listen("context", (res) => {
@@ -69,7 +36,7 @@ const App = () => {
     });
 
     monday.setToken(
-      "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQ3MzA5MjIzNCwiYWFpIjoxMSwidWlkIjo3MTY2ODg2NywiaWFkIjoiMjAyNS0wMi0xNVQxOTowOTozMS4yNDNaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkyMjg0MTEsInJnbiI6InVzZTEifQ.1iMN8yDETWijCvnAMVp838-LdA8r2J3LSKqKUNQUHJA",
+      "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQ3MzA5MjIzNCwiYWFpIjoxMSwidWlkIjo3MTY2ODg2NywiaWFkIjoiMjAyNS0wMi0xNVQxOTowOTozMS4yNDNaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkyMjg0MTEsInJnbiI6InVzZTEifQ.1iMN8yDETWijCvnAMVp838-LdA8r2J3LSKqKUNQUHJA"
     );
 
     monday
@@ -96,19 +63,18 @@ const App = () => {
       }
     }
   }
-}`,
+}`
       )
       .then((res) => {
-        console.log("Data", res)
+        console.log("Data", res);
         const items = res.data.boards[0].items_page.items;
         const columns = res.data.boards[0].columns;
-        let columnNames = {}
-        columns.forEach(c => {
-          columnNames[c.id] = c.title
+        let columnNames = {};
+        columns.forEach((c) => {
+          columnNames[c.id] = c.title;
         });
 
-
-        console.log("Columns", columnNames)
+        console.log("Columns", columnNames);
 
         let columnData = {}; // Object to hold formatted data
         let allAttributes = new Set(); // Stores all unique response names
@@ -116,7 +82,7 @@ const App = () => {
         items.forEach((item) => {
           item.column_values.forEach((column) => {
             const columnName = columnNames[column.id] || column.id; // Use mapped name or fallback to ID
-           
+
             if (!columnData[columnName]) {
               columnData[columnName] = {}; // Initialize if not exists
             }
@@ -143,7 +109,7 @@ const App = () => {
                   name: "",
                   ...Object.keys(values).reduce(
                     (acc, key) => ({ ...acc, [key]: null }),
-                    {},
+                    {}
                   ),
                 },
               ];
@@ -153,7 +119,7 @@ const App = () => {
                   name: "",
                   ...Object.keys(values).reduce(
                     (acc, key) => ({ ...acc, [key]: null }),
-                    {},
+                    {}
                   ),
                 },
                 formattedEntry,
@@ -161,17 +127,19 @@ const App = () => {
             }
 
             return [formattedEntry];
-          },
+          }
         );
 
-        formattedData = formattedData?.filter(f => f?.name?.trim()?.length !== 0)
+        formattedData = formattedData?.filter(
+          (f) => f?.name?.trim()?.length !== 0
+        );
 
-       console.log("Formatteed data1", formattedData)
-       console.log("Attributes", allAttributes)
+        console.log("Formatteed data1", formattedData);
+        console.log("Attributes", allAttributes);
         setColumns(formattedData);
         setAttributeNames([...allAttributes]); // Convert Set to Array
       });
-  }, [columnNames]);
+  }, []);
 
   const colors = [
     "#fdab3d", // Blue
@@ -203,7 +171,7 @@ const App = () => {
 
     // Check if any phrase is included in the text
     const matchedPhrases = phrases.filter((phrase) =>
-      payload.value.toLowerCase().includes(phrase.toLowerCase()),
+      payload.value.toLowerCase().includes(phrase.toLowerCase())
     );
 
     return (
@@ -222,7 +190,7 @@ const App = () => {
               >
                 {word}
               </text>
-            )),
+            ))
           )
         ) : (
           <text
@@ -238,53 +206,101 @@ const App = () => {
       </g>
     );
   };
-console.log("coulum data", columns)
-  return (
-    <>
-    <div className="App">
-      <BarChart
-        width={window.innerWidth}
-        height={window.innerHeight}
-        data={columns}
-        barSize={50}
-        margin={{ bottom: 50 }}
-      >
-        <CartesianGrid
-          stroke={context?.theme === "light" ? "black" : "white"}
-        />
-        <XAxis dataKey="name" tick={<CustomXAxisTick />} interval={0} />
+  console.log("coulum data", columns);
 
-        <YAxis
-          tick={{ fill: context?.theme === "light" ? "black" : "white" }}
-          axisLine={{ stroke: context?.theme === "light" ? "black" : "white" }}
+  // Function to handle question change
+  const handleChange = (dropdownIndex, selectedQuestion) => {
+    console.log(  `dropdwon ${dropdownIndex} selectedQuestion ${selectedQuestion}` )
+    setSelectedQuestionsArray((prev) => {
+      const newSelection = [...prev];
+
+      // If the selected question is already chosen, deselect it (toggle logic)
+      newSelection[dropdownIndex] =
+        newSelection[dropdownIndex] === selectedQuestion
+          ? null
+          : selectedQuestion;
+
+      return newSelection;
+    });
+
+    // Update formattedData dynamically based on selected questions
+    setFormatedData(
+      selectedQuestionsArray
+        .filter(Boolean) // Remove null values
+        .map((selected) => columns.find((c) => c.name === selected))
+        .filter(Boolean) // Remove null values
+    );
+  };
+
+  return (
+    <div className="App">
+      <div className="container">
+        <BarChart
+          width={window.innerWidth}
+          height={window.innerHeight}
+          data={formatedData.length ? formatedData : []}
+          barSize={50}
+          margin={{ bottom: 50 }}
+        >
+          <CartesianGrid
+            stroke={context?.theme === "light" ? "black" : "white"}
+          />
+          <XAxis dataKey="name" tick={<CustomXAxisTick />} interval={0} />
+
+          <YAxis
+            tick={{ fill: context?.theme === "light" ? "black" : "white" }}
+            axisLine={{
+              stroke: context?.theme === "light" ? "black" : "white",
+            }}
+          />
+          <Tooltip />
+          <Legend
+            layout="horizontal"
+            align="center"
+            verticalAlign="top"
+            wrapperStyle={{
+              maxWidth: window.innerWidth,
+              padding: "20px",
+              marginLeft: "10px",
+            }}
+            formatter={(value) => (
+              <span style={{ marginRight: "10px" }}>{value}</span>
+            )}
+          />
+          {/* {formatedData.length > 0 &&
+  // Object.keys(formatedData[0]).map((key, index) => {
+  //   if (key !== "name") {
+  //     return (
+  //       <Bar key={key} dataKey={key} stackId="a" fill={colors[index]} />
+  //     );
+  //   }
+  //   return null;
+  // })} */}
+          {attributeNames
+            ? attributeNames.map((attribute, index) => {
+                return (
+                  <Bar dataKey={attribute} stackId="a" fill={colors[index]} />
+                );
+              })
+            : null}
+        </BarChart>{" "}
+        <p>{userText}</p>
+      </div>
+      {[...Array(10)].map((_, index) => (
+        <DropDown
+          key={index}
+          dropdownIndex={index} // Pass dropdown index (0 to 9)
+          onChange={handleChange}
+          data={columns} // Pass question list
         />
-        <Tooltip />
-        <Legend
-          layout="horizontal"
-          align="center"
-          verticalAlign="top"
-          wrapperStyle={{
-            maxWidth: window.innerWidth,
-            padding: "20px",
-            marginLeft: "10px",
-          }}
-          formatter={(value) => (
-            <span style={{ marginRight: "10px" }}>{value}</span>
-          )}
-        />
-        {attributeNames
-          ? attributeNames.map((attribute, index) => {
-              return (
-                <Bar dataKey={attribute} stackId="a" fill={colors[index]} />
-              );
-            })
-          : null}
-      </BarChart>{" "}
-      <DropDown  data={columns}  />
-   
+      ))}
+
+      {/* <DropDown
+        onChange={handleChange}
+        onTextChange={handleTextUpdate}
+        data={columns}
+      /> */}
     </div>
-     
-    </>
   );
 };
 
