@@ -1,4 +1,3 @@
-import React, { useMemo } from "react";
 import { useState, useEffect } from "react";
 import mondaySdk from "monday-sdk-js";
 import "@vibe/core/tokens";
@@ -10,59 +9,46 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
+  LabelList,
 } from "recharts";
-import MyDropDown from "./components/MyDropDown";
 
-// import MyDropDown from "./components/MyDropDown";
- 
+import MyDropDown from "./components/MyDropDown";
 
 const monday = mondaySdk();
 
 const App = () => {
   const [columns, setColumns] = useState([]);
-  const [selectedColumns, setSelectedColumns] = useState([]);
   const [attributeNames, setAttributeNames] = useState([]);
-  const [context, setContext] = useState();
-  //const [selectedQuestions, setSelectedQuestions] = useState([]);
-
-
-  const columnNames = useMemo(
-    () => ({
-      // single_select0__1:
-      //   "Please rate how effectively you were able to articulate and communicate your business's vision and goals BEFORE SQ1 Bootcamp",
-      // color__1:
-      //   " Please rate how effectively you were able to articulate and communicate your business's vision and goals AFTER SQ1 Bootcamp",
-      // single_select8__1:
-      //   "How much did you know about planning and managing business operations BEFORE SQ1 Bootcamp",
-      // color1__1:
-      //   "How much do you know about planning and managing business operations AFTER SQ1 Bootcamp",
-      // color2__1:
-      //   "How much did you know about how to market your business BEFORE SQ1 Bootcamp",
-      // color5__1:
-      //   "How much do you know about how to market your business AFTER SQ1 Bootcamp",
-      // color0__1:
-      //   "How much did you know about sales strategies BEFORE SQ1 Bootcamp",
-      // color19__1:
-      //   "How much do you know about sales strategies AFTER SQ1 Bootcamp",
-      // color9__1:
-      //   "How much did you know about planning and managing your business finances BEFORE SQ1 Bootcamp",
-      // color18__1:
-      //   "How much do you know about planning and managing your business finances AFTER SQ1 Bootcamp",
-      // color6__1:
-      //   "Please rate how familiar you were with the resources in the St. Louis entrepreneurial ecosystem BEFORE SQ1 Bootcamp",
-      // color04__1:
-      //   "Please rate how familiar you are with the resources in the St. Louis entrepreneurial ecosystem AFTER SQ1 Bootcamp",
-      // single_select1__1:
-      //   "Please rate how effectively you could establish and maintain meaningful connections within the entrepreneurial ecosystem BEFORE SQ1 Bootcamp",
-      // color61__1:
-      //   "Please rate how effectively you can establish and maintain meaningful connections within the entrepreneurial ecosystem AFTER SQ1 Bootcamp",
-      // color4__1:
-      //   "Please rate how effectively you could identify resources and reach out to them for guidance or help BEFORE SQ1 Bootcamp",
-      // color3__1:
-      //   "Please rate how effectively you can identify resources and reach out to them for guidance or help AFTER SQ1 Bootcamp",
-    }),
-    [],
+  const [selectedQuestion, setSelectedQuestions] = useState(
+    Array(10).fill(null)
   );
+  const [context, setContext] = useState();
+  const [userText, setUserText] = useState("");
+
+  // Custom colors for status divisions
+  const colors = [
+    "#fdab3d", // Orange
+    "#df2f4a", // Red
+    "#df2f4a", // Red
+    "#007eb5", // Teal
+    "#fdab3d", // Orange
+    "#fdab3d", // Orange
+    "#df2f4a", // Red
+    "#00c875", // Green
+    "#007eb5", // Teal
+    "#007eb5", // Teal
+    "#00c875", // Green
+    "#00c875", // Green
+  ];
+
+  const handleTextUpdate = (text) => {
+    setUserText(text);
+  };
+
+  useEffect(() => {
+    console.log(selectedQuestion, "selectedQuestions");
+  }, [selectedQuestion]);
 
   useEffect(() => {
     monday.listen("context", (res) => {
@@ -70,7 +56,7 @@ const App = () => {
     });
 
     monday.setToken(
-      "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQ3MzA5MjIzNCwiYWFpIjoxMSwidWlkIjo3MTY2ODg2NywiaWFkIjoiMjAyNS0wMi0xNVQxOTowOTozMS4yNDNaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkyMjg0MTEsInJnbiI6InVzZTEifQ.1iMN8yDETWijCvnAMVp838-LdA8r2J3LSKqKUNQUHJA",
+      "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQ3MzA5MjIzNCwiYWFpIjoxMSwidWlkIjo3MTY2ODg2NywiaWFkIjoiMjAyNS0wMi0xNVQxOTowOTozMS4yNDNaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTkyMjg0MTEsInJnbiI6InVzZTEifQ.1iMN8yDETWijCvnAMVp838-LdA8r2J3LSKqKUNQUHJA"
     );
 
     monday
@@ -97,27 +83,25 @@ const App = () => {
       }
     }
   }
-}`,
+}`
       )
       .then((res) => {
-        console.log("Data", res)
+        console.log("Data", res);
         const items = res.data.boards[0].items_page.items;
         const columns = res.data.boards[0].columns;
-        let columnNames = {}
-        columns.forEach(c => {
-          columnNames[c.id] = c.title
+        let columnNames = {};
+        columns.forEach((c) => {
+          columnNames[c.id] = c.title;
         });
 
-
-        console.log("Columns", columnNames)
-
+        console.log("Columns", columnNames);
         let columnData = {}; // Object to hold formatted data
         let allAttributes = new Set(); // Stores all unique response names
 
         items.forEach((item) => {
           item.column_values.forEach((column) => {
             const columnName = columnNames[column.id] || column.id; // Use mapped name or fallback to ID
-           
+
             if (!columnData[columnName]) {
               columnData[columnName] = {}; // Initialize if not exists
             }
@@ -144,7 +128,7 @@ const App = () => {
                   name: "",
                   ...Object.keys(values).reduce(
                     (acc, key) => ({ ...acc, [key]: null }),
-                    {},
+                    {}
                   ),
                 },
               ];
@@ -154,7 +138,7 @@ const App = () => {
                   name: "",
                   ...Object.keys(values).reduce(
                     (acc, key) => ({ ...acc, [key]: null }),
-                    {},
+                    {}
                   ),
                 },
                 formattedEntry,
@@ -162,129 +146,299 @@ const App = () => {
             }
 
             return [formattedEntry];
-          },
+          }
         );
 
-        formattedData = formattedData?.filter(f => f?.name?.trim()?.length !== 0)
+        formattedData = formattedData?.filter(
+          (f) => f?.name?.trim()?.length !== 0
+        );
 
-       console.log("Formatteed data", formattedData)
-       console.log("Attributes", allAttributes)
+        console.log("Formatteed data1", formattedData);
+        console.log("Attributes", allAttributes);
         setColumns(formattedData);
         setAttributeNames([...allAttributes]); // Convert Set to Array
       });
-  }, [columnNames]);
+  }, []);
 
-  const colors = [
-    "#fdab3d", // Blue
-    "#df2f4a", // Orange
-    "#df2f4a", // Red
-    "#007eb5", // Teal
-    "#fdab3d", // Green
-    "#fdab3d", // Yellow
-    "#df2f4a", // Purple
-    "#00c875", // Soft Pink
-    "#007eb5", // Brown
-    "#007eb5", // Gray
-    "#00c875", // Magenta
-    "#00c875", // Light Green
-  ];
+  console.log("column data", columns);
 
-  const CustomXAxisTick = (props) => {
-    const { x, y, payload } = props;
-    const phrases = [
-      "business's vision",
-      "business operations",
-      "market your business",
-      "sales strategies",
-      "business finances",
-      "St. Louis",
-      "meaningful connections",
-      "guidance or help",
-    ]; // 🔹 Customize with phrases
-
-    // Check if any phrase is included in the text
-    const matchedPhrases = phrases.filter((phrase) =>
-      payload.value.toLowerCase().includes(phrase.toLowerCase()),
-    );
-
-    return (
-      <g transform={`translate(${x},${y})`}>
-        {matchedPhrases.length > 0 ? (
-          matchedPhrases.map((phrase) =>
-            phrase.split(" ").map((word, index) => (
-              <text
-                key={index}
-                x={0}
-                y={index * 15}
-                dy={15}
-                textAnchor="middle"
-                fontSize={10}
-                fill={context?.theme === "light" ? "#333" : "white"}
-              >
-                {word}
-              </text>
-            )),
-          )
-        ) : (
-          <text
-            x={0}
-            y={15}
-            textAnchor="middle"
-            fontSize={10}
-            fill="transparent"
-          >
-            {/* Empty space if no match */}
-          </text>
-        )}
-      </g>
-    );
+  // Function to handle question change
+  const handleChange = (selection) => {
+    console.log("Selection received:", selection);
   };
-console.log("coulum data", columns)
-  return (
-    <>
-    <div className="App">
-      <BarChart
-        width={1500}
-        height={window.innerHeight}
-        data={columns}
-        barSize={50}
-        margin={{ bottom: 50 }}
-      >
-        <CartesianGrid
-          stroke={context?.theme === "light" ? "black" : "white"}
-        />
-        <XAxis dataKey="name" tick={<CustomXAxisTick />} interval={0} />
 
-        <YAxis
-          tick={{ fill: context?.theme === "light" ? "black" : "white" }}
-          axisLine={{ stroke: context?.theme === "light" ? "black" : "white" }}
-        />
-        <Tooltip />
-        <Legend
-          layout="horizontal"
-          align="center"
-          verticalAlign="top"
-          wrapperStyle={{
-            maxWidth: window.innerWidth,
-            padding: "20px",
-            marginLeft: "10px",
-          }}
-          formatter={(value) => (
-            <span style={{ marginRight: "10px" }}>{value}</span>
+  // Helper function to create display names for X-axis
+  const getDisplayName = (index) => {
+    return `Q${index + 1}`;
+  };
+
+  // Custom tooltip component to show detailed response breakdown
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const itemIndex = parseInt(label.replace('Q', '')) - 1;
+      const questionData = selectedQuestion[itemIndex];
+      
+      if (!questionData) return null;
+      
+      return (
+        <div className="custom-tooltip" style={{
+          backgroundColor: context?.theme === "light" ? "white" : "#333",
+          color: context?.theme === "light" ? "black" : "white",
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+          boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
+          maxWidth: "300px"
+        }}>
+          <p style={{ fontWeight: "bold", margin: "0 0 5px 0" }}>Question {itemIndex + 1}</p>
+          
+          {questionData.before && (
+            <div>
+              <p style={{ fontWeight: "bold", margin: "5px 0", color: "#00c875" }}>
+                Before: {questionData.before.name}
+              </p>
+              {Object.entries(questionData.before)
+                .filter(([key, val]) => typeof val === 'number')
+                .map(([key, val]) => (
+                  <p key={`before-${key}`} style={{ margin: "2px 0 2px 10px" }}>
+                    {key}: {val}
+                  </p>
+                ))
+              }
+            </div>
           )}
+          
+          {questionData.after && (
+            <div>
+              <p style={{ fontWeight: "bold", margin: "5px 0", color: "#fdab3d" }}>
+                After: {questionData.after.name}
+              </p>
+              {Object.entries(questionData.after)
+                .filter(([key, val]) => typeof val === 'number')
+                .map(([key, val]) => (
+                  <p key={`after-${key}`} style={{ margin: "2px 0 2px 10px" }}>
+                    {key}: {val}
+                  </p>
+                ))
+              }
+            </div>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Get all unique response keys from the data
+  const getUniqueResponseCategories = () => {
+    const before = new Set();
+    const after = new Set();
+    
+    selectedQuestion.forEach(item => {
+      if (!item) return;
+      
+      if (item.before) {
+        Object.keys(item.before).forEach(key => {
+          if (typeof item.before[key] === 'number') {
+            before.add(key);
+          }
+        });
+      }
+      
+      if (item.after) {
+        Object.keys(item.after).forEach(key => {
+          if (typeof item.after[key] === 'number') {
+            after.add(key);
+          }
+        });
+      }
+    });
+    
+    return { before: Array.from(before), after: Array.from(after) };
+  };
+
+  // Process data for the chart - preserve individual response categories
+  const processChartData = () => {
+    return selectedQuestion.map((item, index) => {
+      // Start with display name
+      const dataPoint = { 
+        displayName: getDisplayName(index),
+        questionIndex: index
+      };
+      
+      // If there's no item or it's incomplete, just return the display name
+      if (!item) return dataPoint;
+      
+      // Add individual response categories for before
+      if (item.before) {
+        Object.entries(item.before).forEach(([key, value]) => {
+          // Only add numeric values, skip name and other properties
+          if (typeof value === 'number') {
+            dataPoint[`before_${key}`] = value;
+          }
+        });
+        dataPoint.beforeName = item.before.name || '';
+      }
+      
+      // Add individual response categories for after
+      if (item.after) {
+        Object.entries(item.after).forEach(([key, value]) => {
+          // Only add numeric values, skip name and other properties
+          if (typeof value === 'number') {
+            dataPoint[`after_${key}`] = value;
+          }
+        });
+        dataPoint.afterName = item.after.name || '';
+      }
+      
+      return dataPoint;
+    });
+  };
+
+  const chartData = processChartData();
+  const responseCategories = getUniqueResponseCategories();
+  
+  // Map response categories to colors from the colors array
+  const getColorForCategory = (prefix, category, index) => {
+    const colorIndex = index % colors.length;
+    return colors[colorIndex];
+  };
+
+  // Get category display name for legend
+  const getCategoryDisplayName = (prefix, category) => {
+    return `${prefix === 'before' ? 'Before' : 'After'}: ${category}`;
+  };
+
+  return (
+    <div className="App">
+      <div className="chart-container" style={{ 
+        width: "80%", 
+        height: "70vh", 
+        margin: "20px 0 20px 20px",
+        backgroundColor: context?.theme === "light" ? "#f5f5f5" : "#2c2c2c",
+        borderRadius: "8px",
+        padding: "20px",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+      }}>
+        <h2 style={{ 
+          textAlign: "center", 
+          marginBottom: "20px",
+          color: context?.theme === "light" ? "#333" : "#f5f5f5"
+        }}>
+          Before/After Survey Response Analysis
+        </h2>
+        <ResponsiveContainer width="100%" height="85%">
+          <BarChart
+            data={chartData}
+            barSize={20}
+            barGap={8}
+            margin={{ top: 20, right: 30, left: 30, bottom: 70 }}
+          >
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={context?.theme === "light" ? "#ccc" : "#555"}
+              vertical={false}
+            />
+            <XAxis 
+              dataKey="displayName" 
+              tick={{ 
+                fill: context?.theme === "light" ? "#333" : "#f5f5f5",
+                fontSize: 12,
+                fontWeight: "bold"
+              }}
+              tickLine={{ stroke: context?.theme === "light" ? "#333" : "#f5f5f5" }}
+              axisLine={{ stroke: context?.theme === "light" ? "#333" : "#f5f5f5" }}
+              interval={0}
+              angle={0}
+              textAnchor="middle"
+              height={70}
+              label={{ 
+                value: "Questions", 
+                position: "insideBottom", 
+                offset: -10,
+                fill: context?.theme === "light" ? "#333" : "#f5f5f5"
+              }}
+            />
+            <YAxis
+              tick={{ fill: context?.theme === "light" ? "#333" : "#f5f5f5" }}
+              axisLine={{ stroke: context?.theme === "light" ? "#333" : "#f5f5f5" }}
+              tickLine={{ stroke: context?.theme === "light" ? "#333" : "#f5f5f5" }}
+              label={{ 
+                value: "Number of Responses", 
+                angle: -90, 
+                position: "insideLeft",
+                style: { textAnchor: 'middle' },
+                fill: context?.theme === "light" ? "#333" : "#f5f5f5"
+              }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              layout="horizontal"
+              align="center"
+              verticalAlign="top"
+              wrapperStyle={{
+                paddingBottom: "15px",
+                fontSize: "12px"
+              }}
+            />
+            
+            {/* Render each "before" response category */}
+            {responseCategories.before.map((category, index) => (
+              <Bar
+                key={`before_${category}`}
+                dataKey={`before_${category}`}
+                name={getCategoryDisplayName('before', category)}
+                fill={getColorForCategory('before', category, index)}
+                radius={[4, 4, 0, 0]}
+                stackId="before"
+              >
+                <LabelList 
+                  dataKey={`before_${category}`} 
+                  position="inside" 
+                  style={{ 
+                    fontSize: '10px', 
+                    fill: "#fff",
+                    fontWeight: "bold"
+                  }}
+                  formatter={(value) => value > 0 ? value : ''}
+                />
+              </Bar>
+            ))}
+            
+            {/* Render each "after" response category */}
+            {responseCategories.after.map((category, index) => (
+              <Bar
+                key={`after_${category}`}
+                dataKey={`after_${category}`}
+                name={getCategoryDisplayName('after', category)}
+                fill={getColorForCategory('after', category, index + responseCategories.before.length)}
+                radius={[4, 4, 0, 0]}
+                stackId="after"
+              >
+                <LabelList 
+                  dataKey={`after_${category}`} 
+                  position="inside" 
+                  style={{ 
+                    fontSize: '10px', 
+                    fill: "#fff",
+                    fontWeight: "bold"
+                  }}
+                  formatter={(value) => value > 0 ? value : ''}
+                />
+              </Bar>
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ marginLeft: "20px", marginTop: "20px" }}>
+        <MyDropDown
+          onChange={handleChange}
+          onTextChange={handleTextUpdate}
+          data={columns}
+          setSelectedQuestions={setSelectedQuestions}
         />
-        {attributeNames
-          ? attributeNames.map((attribute, index) => {
-              return (
-                <Bar dataKey={attribute} stackId="a" fill={colors[index]} />
-              );
-            })
-          : null}
-      </BarChart>{" "}
-      <MyDropDown data={columns} onChange={onchange}/>   
+      </div>
     </div>
-     
-    </>
   );
 };
 
