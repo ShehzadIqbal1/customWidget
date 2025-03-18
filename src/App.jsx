@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { useState, useEffect } from "react";
-import "./App.css";
 import mondaySdk from "monday-sdk-js";
 import "@vibe/core/tokens";
 import {
@@ -12,14 +11,16 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import MyDropDown from "./components/MyDropDown";
 
-import DropDown from "./components/MyDropDown";
+// import MyDropDown from "./components/MyDropDown";
  
 
 const monday = mondaySdk();
 
 const App = () => {
   const [columns, setColumns] = useState([]);
+  const [selectedColumns, setSelectedColumns] = useState([]);
   const [attributeNames, setAttributeNames] = useState([]);
   const [context, setContext] = useState();
   //const [selectedQuestions, setSelectedQuestions] = useState([]);
@@ -166,7 +167,7 @@ const App = () => {
 
         formattedData = formattedData?.filter(f => f?.name?.trim()?.length !== 0)
 
-       console.log("Formatteed data1", formattedData)
+       console.log("Formatteed data", formattedData)
        console.log("Attributes", allAttributes)
         setColumns(formattedData);
         setAttributeNames([...allAttributes]); // Convert Set to Array
@@ -243,7 +244,7 @@ console.log("coulum data", columns)
     <>
     <div className="App">
       <BarChart
-        width={window.innerWidth}
+        width={1500}
         height={window.innerHeight}
         data={columns}
         barSize={50}
@@ -280,8 +281,7 @@ console.log("coulum data", columns)
             })
           : null}
       </BarChart>{" "}
-      <DropDown  data={columns}  />
-   
+      <MyDropDown data={columns} onChange={onchange}/>   
     </div>
      
     </>

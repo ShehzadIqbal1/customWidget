@@ -1,85 +1,64 @@
-import React from 'react';
-import { Text, Icon, ExpandCollapse } from "@vibe/core";
-
-function MyDropDown({ data }) {
-
-
+import React from "react";
+import { useState } from "react";
+import { TextField, ExpandCollapse, Dropdown } from "@vibe/core";
+// import "./MyDropDown.css";
+ 
+function MyDropDown({  onTextChange,onChange, data }) {
+  const [beforeQuestion, setBeforeQuestion] = useState(null);
+  const [afterQuestion, setAfterQuestion] = useState(null);
+  const [customText, setCustomText] = useState(""); // Store user-entered text
+ 
+  const handleBeforeChange = (selected) => {
+    setBeforeQuestion(selected.value); // Save Before selection
+    onChange(selected.value, beforeQuestion); // Pass both selections
+  };
+ 
+  const handleAfterChange = (selected) => {
+    setAfterQuestion(selected.value); // Save After selection
+    onChange(selected.value, afterQuestion); // Pass both selections
+  };
+  const handleTextChange = (event) => {
+    setCustomText(event.target.value);
+    onTextChange(event.target.value);
+  };
   return (
-    <>
-      {data?.map((d, index) => (
+    <div>
+      {Array.from({ length: 10 }).map((dG, index) => (
         <ExpandCollapse
           key={index}
           className="ExpandCollapse-stories-module_storybookExpandCollapse"
-          title={d?.name}
-          
+          title={`Question ${index + 1}`}
         >
-          
-          <Text maxLines={2} type="text2">
-            {d?.name}
-          </Text>
-          <Icon icon="robot" iconSize={40} iconType="svg" />
+          <TextField
+            value={customText}
+            onChange={handleTextChange}
+            placeholder="Enter custom text"
+          />
+       
+ 
+          <Dropdown
+            className="dropdown-stories-styles_spacing"
+            options={data.map((item) => ({
+              label: item.name,
+              value: item.name,
+            }))}
+            placeholder="Before"
+            onChange={handleBeforeChange}
+          />
+ 
+          <Dropdown
+            className="dropdown-stories-styles_spacing"
+            options={data.map((item) => ({
+              label: item.name,
+              value: item.name,
+            }))}
+            placeholder="After"
+            onChange={handleAfterChange}
+          />
         </ExpandCollapse>
       ))}
-    </>
+    </div>
   );
 }
+ 
 export default MyDropDown;
-
-
-
-
-
-// import React from 'react';
-// import { Text, Icon, ExpandCollapse } from "@vibe/core";
-
-// function MyDropDown({ questions, data }) {
-//   return (
-//     <div>
-//       {questions?.map((question, index) => (
-//         <ExpandCollapse
-//           key={index} // Unique key to avoid React warnings
-//           className="ExpandCollapse-stories-module_storybookExpandCollapse"
-//           title={question} // Each ExpandCollapse title is a question
-//         >
-//           {data?.map((d, i) => (
-//             <Text key={i} maxLines={2} type="text2">
-//               {d?.name}
-//             </Text>
-//           ))}
-
-//           <Icon icon="robot" iconSize={40} iconType="svg" />
-//         </ExpandCollapse>
-//       ))}
-//     </div>
-//   );
-// }
-
-// export default MyDropDown;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
