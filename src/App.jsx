@@ -26,8 +26,14 @@ const App = () => {
   const [formatedData, setFormatedData] = useState([]);
   const [userText, setUserText] = useState("");
 
-  const handleTextUpdate = (text) => {
-    setUserText(text);
+  const handleTextUpdate = (text, index) => {
+    setSelectedQuestions((prev) => {
+      const updatedQuestions = [...prev];
+      if (updatedQuestions[index]) {
+        updatedQuestions[index] = { ...updatedQuestions[index], customText: text };
+      }
+      return updatedQuestions;
+    });
   };
 
   useEffect(() => {
@@ -161,54 +167,29 @@ const App = () => {
 
   const CustomXAxisTick = (props) => {
     const { x, y, payload } = props;
-    const phrases = [
-      "business's vision",
-      "business operations",
-      "market your business",
-      "sales strategies",
-      "business finances",
-      "St. Louis",
-      "meaningful connections",
-      "guidance or help",
-    ]; // 🔹 Customize with phrases
-
-    // Check if any phrase is included in the text
-    const matchedPhrases = phrases.filter((phrase) =>
-      payload.value.toLowerCase().includes(phrase.toLowerCase())
-    );
-
+  
+    // Find the matching question from selectedQuestions
+    const matchedQuestion = selectedQuestion.find((q) => q.name === payload.value);
+  
     return (
       <g transform={`translate(${x},${y})`}>
-        {matchedPhrases.length > 0 ? (
-          matchedPhrases.map((phrase) =>
-            phrase.split(" ").map((word, index) => (
-              <text
-                key={index}
-                x={0}
-                y={index * 15}
-                dy={15}
-                textAnchor="middle"
-                fontSize={10}
-                fill={context?.theme === "light" ? "#333" : "white"}
-              >
-                {word}
-              </text>
-            ))
-          )
-        ) : (
+        {/* Display custom user-entered text below the bar (if available) */}
+        {matchedQuestion?.customText && (
           <text
             x={0}
-            y={15}
+            y={20} // Position the text slightly below the X-axis
+            dy={15}
             textAnchor="middle"
-            fontSize={10}
-            fill="transparent"
+            fontSize={12}
+            fill="red"
           >
-            {/* Empty space if no match */}
+            {matchedQuestion.customText}
           </text>
         )}
       </g>
     );
   };
+  
   console.log("coulum data", columns);
 
   // Function to handle question change

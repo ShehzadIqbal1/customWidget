@@ -21,13 +21,16 @@ function MyDropDown({ onTextChange, onChange, data, setSelectedQuestions }) {
   const handleApplySelection = (index) => {
     setSelectedQuestions((prev) => {
       const newQuestions = [...prev];
-      newQuestions[index] = tempSelections[index]; // Update only when button is clicked
+      newQuestions[index] = {
+        ...tempSelections[index],
+        customText: customText || "", // Store entered text
+      };
       return newQuestions;
     });
-
+  
     onChange(tempSelections[index] ? tempSelections[index].name : null);
   };
-
+  
   const handleTextChange = (event) => {
     setCustomText(event.target.value);
     onTextChange(event.target.value);
