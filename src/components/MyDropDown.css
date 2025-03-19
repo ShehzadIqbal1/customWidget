@@ -32,6 +32,10 @@
   padding-bottom: 60px; /* Add extra padding to ensure Question 10 is fully visible */
 }
 
+.dropdown-container::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes slideInRight {
   from {
     transform: translateX(100%);
@@ -71,7 +75,7 @@ h2{
 }
 
 .headerOpen_a96c0d94ee {
-  background-color: #f9fafb !important;
+  background-color: #F0F0F1 !important;
 }
 
 /* Field labels */
@@ -90,7 +94,7 @@ h2{
 
 /* Dropdown items within the ExpandCollapse */
 .dropdown-item {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   width: 100%;
 }
 
@@ -106,7 +110,7 @@ h2{
   position: relative;
 }
 
-.expandCollapse_3ba79dc2fa{
+.expandCollapse_3ba79dc2fa  {
   border-radius: 8px !important;
 }
 
