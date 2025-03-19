@@ -25,6 +25,7 @@ const App = () => {
   );
   const [context, setContext] = useState();
   const [userText, setUserText] = useState("");
+  const [chartData, setChartData] = useState([]);
 
   // Custom colors for status divisions
   const colors = [
@@ -46,16 +47,55 @@ const App = () => {
     setUserText(text);
   };
 
+  // Initialize chartData with default values
+  useEffect(() => {
+    const initialChartData = Array(10).fill().map((_, index) => ({
+      displayName: getDisplayName(index),
+      questionIndex: index
+    }));
+    setChartData(initialChartData);
+  }, []);
+
   useEffect(() => {
     console.log(selectedQuestion, "selectedQuestions");
+    console.log(chartData, "chartData");
+    // Update chartData with new selectedQuestion data
+    setChartData(prevChartData => {
+      return prevChartData.map((item, index) => {
+        const question = selectedQuestion[index];
+        if (!question) return item;
+        
+        const newItem = { ...item };
+        
+        // Add individual response categories for before
+        if (question.before) {
+          Object.entries(question.before).forEach(([key, value]) => {
+            // Only add numeric values, skip name and other properties
+            if (typeof value === 'number') {
+              newItem[`before_${key}`] = value;
+            }
+          });
+          newItem.beforeName = question.before.name || '';
+        }
+        
+        // Add individual response categories for after
+        if (question.after) {
+          Object.entries(question.after).forEach(([key, value]) => {
+            // Only add numeric values, skip name and other properties
+            if (typeof value === 'number') {
+              newItem[`after_${key}`] = value;
+            }
+          });
+          newItem.afterName = question.after.name || '';
+        }
+        
+        return newItem;
+      });
+    });
   }, [selectedQuestion]);
 
   useEffect(() => {
     monday.listen("context", (res) => {
-      
-      
-      
-      
       setContext(res.data);
     });
 
@@ -261,45 +301,6 @@ const App = () => {
     return { before: Array.from(before), after: Array.from(after) };
   };
 
-  // Process data for the chart - preserve individual response categories
-  const processChartData = () => {
-    return selectedQuestion.map((item, index) => {
-      // Start with display name
-      const dataPoint = { 
-        displayName: getDisplayName(index),
-        questionIndex: index
-      };
-      
-      // If there's no item or it's incomplete, just return the display name
-      if (!item) return dataPoint;
-      
-      // Add individual response categories for before
-      if (item.before) {
-        Object.entries(item.before).forEach(([key, value]) => {
-          // Only add numeric values, skip name and other properties
-          if (typeof value === 'number') {
-            dataPoint[`before_${key}`] = value;
-          }
-        });
-        dataPoint.beforeName = item.before.name || '';
-      }
-      
-      // Add individual response categories for after
-      if (item.after) {
-        Object.entries(item.after).forEach(([key, value]) => {
-          // Only add numeric values, skip name and other properties
-          if (typeof value === 'number') {
-            dataPoint[`after_${key}`] = value;
-          }
-        });
-        dataPoint.afterName = item.after.name || '';
-      }
-      
-      return dataPoint;
-    });
-  };
-
-  const chartData = processChartData();
   const responseCategories = getUniqueResponseCategories();
   
   // Map response categories to colors from the colors array
@@ -334,7 +335,7 @@ const App = () => {
         <ResponsiveContainer width="100%" height="85%">
           <BarChart
             data={chartData}
-            barSize={20}
+            barSize={40}
             barGap={8}
             margin={{ top: 20, right: 30, left: 30, bottom: 70 }}
           >
@@ -440,6 +441,8 @@ const App = () => {
           onTextChange={handleTextUpdate}
           data={columns}
           setSelectedQuestions={setSelectedQuestions}
+          chartData={chartData}
+          setChartData={setChartData}
         />
       </div>
     </div>

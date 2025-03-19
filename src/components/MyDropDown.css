@@ -7,22 +7,11 @@
   position: fixed;
   top: 20px;
   right: 20px;
-  padding: 8px 16px;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #333333;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   z-index: 100;
-}
-
-.toggle-dropdown-button:hover {
-  background-color: #f5f5f5;
 }
 
 /* Dropdown Container Styling */
@@ -30,7 +19,7 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: 360px;
+  width: 400px;
   height: 100vh;
   background-color: white;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
@@ -39,7 +28,6 @@
   padding: 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   animation: slideInRight 0.3s ease-out;
   padding-bottom: 60px; /* Add extra padding to ensure Question 10 is fully visible */
 }
@@ -53,83 +41,43 @@
   }
 }
 
-.dropdown-container h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+h2{
+  margin: 0 !important;
+  
+}
+
+.divider_323d354353{
+  margin-bottom: 30px;
+}
+
+.dropdown-header{
+  margin-bottom: 10px;
 }
 
 /* Close button inside the dropdown */
 .close-button {
-  position: absolute;
   top: 20px;
   right: 20px;
-  background-color: #0068ff;
   color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 20px;
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
 }
 
-.close-button:hover {
-  background-color: #0055cc;
-}
-
-/* Expand Collapse Styling */
-.expand-collapse {
-  margin-bottom: 12px;
-  border: 1px solid #e6e8eb;
-  border-radius: 4px;
-  overflow: hidden;
-  background-color: #ffffff;
-}
-
-.expand-collapse:last-child {
-  margin-bottom: 0px !important; /* Extra margin for the last question */
-}
-
-.expand-collapse .title {
-  padding: 16px;
-  background-color: #ffffff;
-  font-size: 16px;
-  color: #333;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 500;
-}
-
-.expand-collapse .title:hover {
-  background-color: #f9fafb;
-}
-
-.expand-collapse .content {
-  padding: 0;
-  border-top: 1px solid #e6e8eb;
-  background-color: #f9fafb;
-}
 
 /* Question content styling - matching reference image */
 .question-content {
-  padding: 16px;
-  background-color: #f9fafb;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.headerOpen_a96c0d94ee {
+  background-color: #f9fafb !important;
 }
 
 /* Field labels */
 .field-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #4b5563;
-  margin-bottom: 6px;
-  display: block;
+  margin-bottom: 8px;
+  margin-top: 8px;
 }
 
 /* Form fields container */
@@ -152,33 +100,14 @@
   margin-bottom: 16px;
 }
 
-/* Text field styling */
-.dropdown-textfield input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 14px;
-  color: #374151;
-  background-color: white;
-  height: 40px;
-  box-sizing: border-box;
-}
-
-.dropdown-textfield input:focus {
-  border-color: #0068ff;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 104, 255, 0.1);
-}
-
-.dropdown-textfield input::placeholder {
-  color: #9ca3af;
-}
-
 /* Dropdown select styling */
 .dropdown-select {
   width: 100%;
   position: relative;
+}
+
+.expandCollapse_3ba79dc2fa{
+  border-radius: 8px !important;
 }
 
 .dropdown-select select,
@@ -198,6 +127,10 @@
   background-position: right 12px center;
   cursor: pointer;
   text-align: left;
+}
+
+.input_2259998a98{
+  font-size: 14px !important;
 }
 
 /* Custom dropdown button and panel */
@@ -290,12 +223,11 @@
   background-color: #0068ff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  margin-top: 8px;
-  height: 40px;
+  margin-top: 20px;
 }
 
 .apply-button:hover {
