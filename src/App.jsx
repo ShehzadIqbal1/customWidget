@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
-
+import { Text, Heading } from "@vibe/core";
 import MyDropDown from "./components/MyDropDown";
 
 const monday = mondaySdk();
@@ -226,27 +226,24 @@ const App = () => {
       
       return (
         <div className="custom-tooltip" style={{
-          backgroundColor: context?.theme === "light" ? "white" : "#333",
-          color: context?.theme === "light" ? "black" : "white",
-          padding: "10px",
+          backgroundColor: context?.theme === "dark" ? "#333" : "white",
+          color: context?.theme === "dark" ? "white" : "black",
           border: "1px solid #ccc",
           borderRadius: "5px",
           boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
           maxWidth: "300px"
         }}>
-          <p style={{ fontWeight: "bold", margin: "0 0 5px 0" }}>Question {itemIndex + 1}</p>
+          <Text type="text1" weight="bold" color="primary">Question {itemIndex + 1}</Text>
           
           {questionData.before && (
             <div>
-              <p style={{ fontWeight: "bold", margin: "5px 0", color: "#00c875" }}>
-                Before: {questionData.before.name}
-              </p>
+              <Text type="text2" weight="bold" color="positive">Before: {questionData.before.name}</Text>
               {Object.entries(questionData.before)
                 .filter(([key, val]) => typeof val === 'number')
                 .map(([key, val]) => (
-                  <p key={`before-${key}`} style={{ margin: "2px 0 2px 10px" }}>
+                  <Text key={`before-${key}`} type="text3" color="secondary" style={{paddingLeft: "10px"}}>
                     {key}: {val}
-                  </p>
+                  </Text>
                 ))
               }
             </div>
@@ -254,15 +251,13 @@ const App = () => {
           
           {questionData.after && (
             <div>
-              <p style={{ fontWeight: "bold", margin: "5px 0", color: "#fdab3d" }}>
-                After: {questionData.after.name}
-              </p>
+              <Text type="text2" weight="bold" color="warning">After: {questionData.after.name}</Text>
               {Object.entries(questionData.after)
                 .filter(([key, val]) => typeof val === 'number')
                 .map(([key, val]) => (
-                  <p key={`after-${key}`} style={{ margin: "2px 0 2px 10px" }}>
+                  <Text key={`after-${key}`} type="text3" color="secondary" style={{paddingLeft: "10px"}}>
                     {key}: {val}
-                  </p>
+                  </Text>
                 ))
               }
             </div>
@@ -315,66 +310,45 @@ const App = () => {
   };
 
   return (
-    <div className="App">
+    <div className="App" style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column" }}>
       <div className="chart-container" style={{ 
-        width: "80%", 
-        height: "70vh", 
-        margin: "20px 0 20px 20px",
-        backgroundColor: context?.theme === "light" ? "#f5f5f5" : "#2c2c2c",
-        borderRadius: "8px",
-        padding: "20px",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+        width: "75%", 
+        height: "90vh", 
+        backgroundColor: context?.theme === "dark" ? "#2c2c2c" : "#ffffff",
       }}>
-        <h2 style={{ 
-          textAlign: "center", 
-          marginBottom: "20px",
-          color: context?.theme === "light" ? "#333" : "#f5f5f5"
-        }}>
+        <Heading type="h1" weight="bold" size="medium" align="center">
           Before/After Survey Response Analysis
-        </h2>
-        <ResponsiveContainer width="100%" height="85%">
+        </Heading>
+        <ResponsiveContainer width="100%" height="90%">
           <BarChart
             data={chartData}
             barSize={40}
             barGap={8}
-            margin={{ top: 20, right: 30, left: 30, bottom: 70 }}
+            margin={{ top: 10, right: 10, left: 10, bottom: 40 }}
           >
             <CartesianGrid 
               strokeDasharray="3 3" 
-              stroke={context?.theme === "light" ? "#ccc" : "#555"}
+              stroke={context?.theme === "dark" ? "#555" : "#ccc"}
               vertical={false}
             />
             <XAxis 
               dataKey="displayName" 
               tick={{ 
-                fill: context?.theme === "light" ? "#333" : "#f5f5f5",
-                fontSize: 12,
+                fill: context?.theme === "dark" ? "#ffffff" : "#333",
+                fontSize: 14,
                 fontWeight: "bold"
               }}
-              tickLine={{ stroke: context?.theme === "light" ? "#333" : "#f5f5f5" }}
-              axisLine={{ stroke: context?.theme === "light" ? "#333" : "#f5f5f5" }}
+              tickLine={{ stroke: context?.theme === "dark" ? "#ffffff" : "#333" }}
+              axisLine={{ stroke: context?.theme === "dark" ? "#ffffff" : "#333" }}
               interval={0}
               angle={0}
               textAnchor="middle"
-              height={70}
-              label={{ 
-                value: "Questions", 
-                position: "insideBottom", 
-                offset: -10,
-                fill: context?.theme === "light" ? "#333" : "#f5f5f5"
-              }}
+              height={40}
             />
             <YAxis
-              tick={{ fill: context?.theme === "light" ? "#333" : "#f5f5f5" }}
-              axisLine={{ stroke: context?.theme === "light" ? "#333" : "#f5f5f5" }}
-              tickLine={{ stroke: context?.theme === "light" ? "#333" : "#f5f5f5" }}
-              label={{ 
-                value: "Number of Responses", 
-                angle: -90, 
-                position: "insideLeft",
-                style: { textAnchor: 'middle' },
-                fill: context?.theme === "light" ? "#333" : "#f5f5f5"
-              }}
+              tick={{ fill: context?.theme === "dark" ? "#ffffff" : "#333" }}
+              axisLine={{ stroke: context?.theme === "dark" ? "#ffffff" : "#333" }}
+              tickLine={{ stroke: context?.theme === "dark" ? "#ffffff" : "#333" }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend
@@ -382,7 +356,6 @@ const App = () => {
               align="center"
               verticalAlign="top"
               wrapperStyle={{
-                paddingBottom: "15px",
                 fontSize: "12px"
               }}
             />
@@ -401,9 +374,9 @@ const App = () => {
                   dataKey={`before_${category}`} 
                   position="inside" 
                   style={{ 
-                    fontSize: '10px', 
+                    fontSize: '12px', 
                     fill: "#fff",
-                    fontWeight: "bold"
+                    // fontWeight: "bold"
                   }}
                   formatter={(value) => value > 0 ? value : ''}
                 />
@@ -424,9 +397,9 @@ const App = () => {
                   dataKey={`after_${category}`} 
                   position="inside" 
                   style={{ 
-                    fontSize: '10px', 
+                    fontSize: '12px', 
                     fill: "#fff",
-                    fontWeight: "bold"
+                    // fontWeight: "bold"
                   }}
                   formatter={(value) => value > 0 ? value : ''}
                 />
@@ -435,7 +408,7 @@ const App = () => {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div style={{ marginLeft: "20px", marginTop: "20px" }}>
+      <div style={{ width: "100%" }}>
         <MyDropDown
           onChange={handleChange}
           onTextChange={handleTextUpdate}
