@@ -64,13 +64,13 @@ const App = () => {
           });
           newItem.beforeName = question.before.name || "";
         }
-
         // Add individual response categories for after
         if (question.after) {
           Object.entries(question.after).forEach(([key, value]) => {
             // Only add numeric values, skip name and other properties
             if (typeof value === "number") {
               newItem[`after_${key}`] = value;
+          
             }
           });
           newItem.afterName = question.after.name || "";
@@ -80,7 +80,7 @@ const App = () => {
       });
     });
   }, [selectedQuestion]);
-
+     
   useEffect(() => {
     monday.listen("context", (res) => {
       setContext(res.data);
@@ -111,18 +111,14 @@ const App = () => {
 
         // Filter only status-type columns
         const statusColumns = allColumns.filter(
-          (col) =>
-          col.type === "color" || 
-          col.type === "status"
-          // col.type === "dropdown" ||
-          //col.type === "single_select"
+          (col) => col.type === "color" || col.type === "status"
         );
 
         console.log("Status columns:", statusColumns);
 
         // Parse settings_str for each column to extract color information
         const settingsMap = {};
-        statusColumns.forEach(column => {
+        statusColumns.forEach((column) => {
           try {
             if (column.settings_str) {
               const settings = JSON.parse(column.settings_str);
@@ -130,7 +126,7 @@ const App = () => {
                 settingsMap[column.id] = {
                   title: column.title,
                   colors: settings.labels_colors,
-                  labels: settings.labels || {}
+                  labels: settings.labels || {},
                 };
               }
             }
@@ -192,8 +188,8 @@ const App = () => {
 
                   if (!columnData[columnName]) {
                     columnData[columnName] = {
-                      columnId: column.id  // Store the column ID to lookup colors later
-                    }; 
+                      columnId: column.id, // Store the column ID to lookup colors later
+                    };
                   }
 
                   let text = column.text || "N/A";
@@ -336,7 +332,7 @@ const App = () => {
     return null;
   };
 
-  // Get all unique response keys from the data
+  // Get all unique response categories from the data
   const getUniqueResponseCategories = () => {
     const before = new Set();
     const after = new Set();
@@ -371,7 +367,7 @@ const App = () => {
     // Try to find the color from column settings
     for (const columnId in columnSettings) {
       const settings = columnSettings[columnId];
-      
+
       // Find if this category exists in labels
       for (const labelId in settings.labels) {
         if (settings.labels[labelId] === category && settings.colors[labelId]) {
@@ -382,27 +378,74 @@ const App = () => {
 
     // Fallback colors if no match is found
     const fallbackColors = [
-      // "#fdab3d", // Orange
-      // "#df2f4a", // Red
-      // "#007eb5", // Teal
-      // "#00c875", // Green
-      // "#579bfc", // Blue
-      // "#a25ddc", // Purple
-      // "#ffcb00", // Yellow
-      // "#ff642e", // Reddish-orange
-      // "#66ccff", // Light blue
-      // "#bb3354", // Maroon
-      // "#33d391", // Mint
-      // "#c4c4c4"  // Gray
+      "#fdab3d", // Orange
+      "#df2f4a", // Red
+      "#007eb5", // Teal
+      "#00c875", // Green
+      "#579bfc", // Blue
+      "#a25ddc", // Purple
+      "#ffcb00", // Yellow
+      "#ff642e", // Reddish-orange
+      "#66ccff", // Light blue
+      "#bb3354", // Maroon
+      "#33d391", // Mint
+      "#c4c4c4"  // Gray
     ];
-    
+
     const colorIndex = index % fallbackColors.length;
     return fallbackColors[colorIndex];
   };
 
-  // Get category display name for legend
-  const getCategoryDisplayName = (prefix, category) => {
-    return `${prefix === "before" ? "Before" : "After"}: ${category}`;
+  // Modified legendFormatter function that prevents duplicates
+  const legendFormatter = (value, entry) => {
+    // Extract the actual category name from the dataKey
+    const match = entry.dataKey.match(/(before|after)_(.+)/);
+    if (!match) return value;
+    
+    const [_, prefix, category] = match;
+    return category;
+  };
+
+  // Function to create unique legend items
+  const getUniqueLegendItems = () => {
+    // Use a Map with category+color as the key to ensure uniqueness
+    const uniqueItems = new Map();
+    
+    // Process before categories
+    responseCategories.before.forEach((category, index) => {
+      const color = getColorForCategory("before", category, index);
+      const key = `${category}-${color}`;
+      
+      if (!uniqueItems.has(key)) {
+        uniqueItems.set(key, {
+          value: category,
+          type: 'rect',
+          id: `before_${category}`,
+          color: color,
+          dataKey: `before_${category}`,
+          payload: { fill: color }
+        });
+      }
+    });
+    
+    // Process after categories
+    responseCategories.after.forEach((category, index) => {
+      const color = getColorForCategory("after", category, index + responseCategories.before.length);
+      const key = `${category}-${color}`;
+      
+      if (!uniqueItems.has(key)) {
+        uniqueItems.set(key, {
+          value: category,
+          type: 'rect',
+          id: `after_${category}`,
+          color: color,
+          dataKey: `after_${category}`,
+          payload: { fill: color }
+        });
+      }
+    });
+    
+    return Array.from(uniqueItems.values());
   };
 
   return (
@@ -489,6 +532,8 @@ const App = () => {
                 paddingBottom: "15px",
                 fontSize: "12px",
               }}
+              formatter={legendFormatter}
+              payload={getUniqueLegendItems()}
             />
 
             {/* Render each "before" response category */}
@@ -496,7 +541,7 @@ const App = () => {
               <Bar
                 key={`before_${category}`}
                 dataKey={`before_${category}`}
-                name={getCategoryDisplayName("before", category)}
+                name={`Before: ${category}`} // Add "Before: " prefix to make it clearer
                 fill={getColorForCategory("before", category, index)}
                 radius={[4, 4, 0, 0]}
                 stackId="before"
@@ -519,7 +564,7 @@ const App = () => {
               <Bar
                 key={`after_${category}`}
                 dataKey={`after_${category}`}
-                name={getCategoryDisplayName("after", category)}
+                name={`After: ${category}`} // Add "After: " prefix to make it clearer
                 fill={getColorForCategory(
                   "after",
                   category,
