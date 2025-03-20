@@ -11,7 +11,15 @@ import {
 } from "@vibe/core";
 import "./MyDropDown.css";
 
-function MyDropDown({ onTextChange, onChange, data, setSelectedQuestions, chartData, setChartData }) {
+function MyDropDown({ 
+  onTextChange, 
+  onChange, 
+  data, 
+  setSelectedQuestions, 
+  chartData, 
+  setChartData,
+  columnSettings // Add the new prop
+}) {
   const [customTexts, setCustomTexts] = useState(Array(10).fill("")); // Store user-entered text for each question
   const [tempBeforeSelections, setTempBeforeSelections] = useState(
     Array(10).fill(null)
@@ -40,7 +48,10 @@ function MyDropDown({ onTextChange, onChange, data, setSelectedQuestions, chartD
     setTempBeforeSelections((prev) => {
       const newTempSelections = [...prev];
       newTempSelections[index] = selected
-        ? { ...data.find((item) => item.name === selected.value) }
+        ? { 
+            ...data.find((item) => item.name === selected.value),
+            columnId: selected.columnId // Store column ID for color lookup
+          }
         : null;
       return newTempSelections;
     });
@@ -50,7 +61,10 @@ function MyDropDown({ onTextChange, onChange, data, setSelectedQuestions, chartD
     setTempAfterSelections((prev) => {
       const newTempSelections = [...prev];
       newTempSelections[index] = selected
-        ? { ...data.find((item) => item.name === selected.value) }
+        ? { 
+            ...data.find((item) => item.name === selected.value),
+            columnId: selected.columnId // Store column ID for color lookup
+          }
         : null;
       return newTempSelections;
     });
@@ -99,6 +113,38 @@ function MyDropDown({ onTextChange, onChange, data, setSelectedQuestions, chartD
   const handleCloseDropdown = () => {
     setIsDropdownVisible(false);
   };
+
+  // Create dropdown options with color information
+  const getDropdownOptions = () => {
+    return data.map((item) => {
+      const option = {
+        label: item.name,
+        value: item.name,
+        columnId: item.columnId
+      };
+      
+      // Add color styling if available
+      if (item.columnId && columnSettings[item.columnId]) {
+        const settings = columnSettings[item.columnId];
+        // Find the color for this label if possible
+        for (const labelId in settings.labels) {
+          if (settings.labels[labelId] === item.name && settings.colors[labelId]) {
+            option.labelStyle = {
+              backgroundColor: settings.colors[labelId].color,
+              color: 'white',
+              padding: '2px 6px',
+              borderRadius: '4px'
+            };
+            break;
+          }
+        }
+      }
+      
+      return option;
+    });
+  };
+
+  const dropdownOptions = getDropdownOptions();
 
   return (
     <div className="dropdown-wrapper">
@@ -149,10 +195,7 @@ function MyDropDown({ onTextChange, onChange, data, setSelectedQuestions, chartD
                   <Dropdown
                     size="medium"
                     clearable
-                    options={data.map((item) => ({
-                      label: item.name,
-                      value: item.name,
-                    }))}
+                    options={dropdownOptions}
                     placeholder="Select before column"
                     onChange={(selected) =>
                       handleBeforeDropdownChange(selected, index)
@@ -163,10 +206,7 @@ function MyDropDown({ onTextChange, onChange, data, setSelectedQuestions, chartD
                   <Dropdown
                     size="medium"
                     clearable
-                    options={data.map((item) => ({
-                      label: item.name,
-                      value: item.name,
-                    }))}
+                    options={dropdownOptions}
                     placeholder="Select after column"
                     onChange={(selected) =>
                       handleAfterDropdownChange(selected, index)
