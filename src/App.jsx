@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
+import { Loader } from "@vibe/core";
 
 import MyDropDown from "./components/MyDropDown";
 
@@ -27,21 +28,55 @@ const App = () => {
   const [userText, setUserText] = useState("");
   const [chartData, setChartData] = useState([]);
   const [columnSettings, setColumnSettings] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleTextUpdate = (text) => {
     setUserText(text);
   };
 
-  // Initialize chartData with default values
+  // Initialize chartData with default values and load saved state
   useEffect(() => {
-    const initialChartData = Array(10)
+    // Load from localStorage if available
+    const savedSelectedQuestions = localStorage.getItem('selectedQuestions');
+    const savedChartData = localStorage.getItem('chartData');
+
+    let initialChartData = Array(10)
       .fill()
       .map((_, index) => ({
         displayName: getDisplayName(index),
         questionIndex: index,
       }));
+
+    let initialSelectedQuestions = Array(10).fill(null);
+
+    if (savedChartData) {
+      try {
+        initialChartData = JSON.parse(savedChartData);
+      } catch (error) {
+        console.error("Error parsing saved chart data:", error);
+      }
+    }
+
+    if (savedSelectedQuestions) {
+      try {
+        initialSelectedQuestions = JSON.parse(savedSelectedQuestions);
+      } catch (error) {
+        console.error("Error parsing saved selected questions:", error);
+      }
+    }
+
     setChartData(initialChartData);
+    setSelectedQuestions(initialSelectedQuestions);
   }, []);
+
+  // Save to localStorage whenever selectedQuestion or chartData changes
+  useEffect(() => {
+    localStorage.setItem('selectedQuestions', JSON.stringify(selectedQuestion));
+  }, [selectedQuestion]);
+
+  useEffect(() => {
+    localStorage.setItem('chartData', JSON.stringify(chartData));
+  }, [chartData]);
 
   useEffect(() => {
     console.log(selectedQuestion, "selectedQuestions");
@@ -70,7 +105,6 @@ const App = () => {
             // Only add numeric values, skip name and other properties
             if (typeof value === "number") {
               newItem[`after_${key}`] = value;
-          
             }
           });
           newItem.afterName = question.after.name || "";
@@ -82,6 +116,7 @@ const App = () => {
   }, [selectedQuestion]);
      
   useEffect(() => {
+    setIsLoading(true);
     monday.listen("context", (res) => {
       setContext(res.data);
     });
@@ -243,16 +278,45 @@ const App = () => {
               console.log("Attributes", allAttributes);
               setColumns(formattedData);
               setAttributeNames([...allAttributes]); // Convert Set to Array
+              setIsLoading(false); // Set loading to false once data is loaded
+            })
+            .catch(error => {
+              console.error("Error fetching data:", error);
+              setIsLoading(false);
             });
+        } else {
+          setIsLoading(false);
         }
+      })
+      .catch(error => {
+        console.error("Error fetching columns:", error);
+        setIsLoading(false);
       });
   }, []);
-
-  console.log("column data", columns);
 
   // Function to handle question change
   const handleChange = (selection) => {
     console.log("Selection received:", selection);
+  };
+
+  // Handle removing a question selection
+  const handleRemoveQuestion = (index) => {
+    // Update selectedQuestions to remove the selection at index
+    setSelectedQuestions(prev => {
+      const newQuestions = [...prev];
+      newQuestions[index] = null;
+      return newQuestions;
+    });
+    
+    // Update chartData to remove the bars for this question
+    setChartData(prev => {
+      const newChartData = [...prev];
+      newChartData[index] = {
+        displayName: getDisplayName(index),
+        questionIndex: index,
+      };
+      return newChartData;
+    });
   };
 
   // Helper function to create display names for X-axis
@@ -376,24 +440,8 @@ const App = () => {
       }
     }
 
-    // Fallback colors if no match is found
-    const fallbackColors = [
-      "#fdab3d", // Orange
-      "#df2f4a", // Red
-      "#007eb5", // Teal
-      "#00c875", // Green
-      "#579bfc", // Blue
-      "#a25ddc", // Purple
-      "#ffcb00", // Yellow
-      "#ff642e", // Reddish-orange
-      "#66ccff", // Light blue
-      "#bb3354", // Maroon
-      "#33d391", // Mint
-      "#c4c4c4"  // Gray
-    ];
-
-    const colorIndex = index % fallbackColors.length;
-    return fallbackColors[colorIndex];
+    // Fallback colors - return a default color (gray) if no match is found
+    return "#c4c4c4";  // Default gray color
   };
 
   // Modified legendFormatter function that prevents duplicates
@@ -460,6 +508,7 @@ const App = () => {
           borderRadius: "8px",
           padding: "20px",
           boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          position: "relative",
         }}
       >
         <h2
@@ -471,134 +520,170 @@ const App = () => {
         >
           Before/After Survey Response Analysis
         </h2>
-        <ResponsiveContainer width="100%" height="85%">
-          <BarChart
-            data={chartData}
-            barSize={40}
-            barGap={8}
-            margin={{ top: 20, right: 30, left: 30, bottom: 70 }}
+
+        {isLoading ? (
+          <div 
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              textAlign: "center"
+            }}
           >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={context?.theme === "light" ? "#ccc" : "#555"}
-              vertical={false}
-            />
-            <XAxis
-              dataKey="displayName"
-              tick={{
-                fill: context?.theme === "light" ? "#333" : "#f5f5f5",
-                fontSize: 12,
-                fontWeight: "bold",
+            <Loader size="medium" />
+            <p 
+              style={{
+                marginTop: "10px",
+                color: context?.theme === "light" ? "#333" : "#f5f5f5",
               }}
-              tickLine={{
-                stroke: context?.theme === "light" ? "#333" : "#f5f5f5",
-              }}
-              axisLine={{
-                stroke: context?.theme === "light" ? "#333" : "#f5f5f5",
-              }}
-              interval={0}
-              angle={0}
-              textAnchor="middle"
-              height={70}
-              label={{
-                value: "Questions",
-                position: "insideBottom",
-                offset: -10,
-                fill: context?.theme === "light" ? "#333" : "#f5f5f5",
-              }}
-            />
-            <YAxis
-              tick={{ fill: context?.theme === "light" ? "#333" : "#f5f5f5" }}
-              axisLine={{
-                stroke: context?.theme === "light" ? "#333" : "#f5f5f5",
-              }}
-              tickLine={{
-                stroke: context?.theme === "light" ? "#333" : "#f5f5f5",
-              }}
-              label={{
-                value: "Number of Responses",
-                angle: -90,
-                position: "insideLeft",
-                style: { textAnchor: "middle" },
-                fill: context?.theme === "light" ? "#333" : "#f5f5f5",
-              }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend
-              layout="horizontal"
-              align="center"
-              verticalAlign="top"
-              wrapperStyle={{
-                paddingBottom: "15px",
-                fontSize: "12px",
-              }}
-              formatter={legendFormatter}
-              payload={getUniqueLegendItems()}
-            />
+            >
+              Loading data from Monday.com...
+            </p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="85%">
+            <BarChart
+              data={chartData}
+              barSize={40}
+              barGap={8}
+              margin={{ top: 20, right: 30, left: 30, bottom: 70 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={context?.theme === "light" ? "#ccc" : "#555"}
+                vertical={false}
+              />
+              <XAxis
+                dataKey="displayName"
+                tick={{
+                  fill: context?.theme === "light" ? "#333" : "#f5f5f5",
+                  fontSize: 12,
+                  fontWeight: "bold",
+                }}
+                tickLine={{
+                  stroke: context?.theme === "light" ? "#333" : "#f5f5f5",
+                }}
+                axisLine={{
+                  stroke: context?.theme === "light" ? "#333" : "#f5f5f5",
+                }}
+                interval={0}
+                angle={0}
+                textAnchor="middle"
+                height={70}
+                label={{
+                  value: "Questions",
+                  position: "insideBottom",
+                  offset: -10,
+                  fill: context?.theme === "light" ? "#333" : "#f5f5f5",
+                }}
+              />
+              <YAxis
+                tick={{ fill: context?.theme === "light" ? "#333" : "#f5f5f5" }}
+                axisLine={{
+                  stroke: context?.theme === "light" ? "#333" : "#f5f5f5",
+                }}
+                tickLine={{
+                  stroke: context?.theme === "light" ? "#333" : "#f5f5f5",
+                }}
+                label={{
+                  value: "Number of Responses",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { textAnchor: "middle" },
+                  fill: context?.theme === "light" ? "#333" : "#f5f5f5",
+                }}
+              />
+              <Tooltip 
+                content={<CustomTooltip />} 
+                cursor={{ 
+                  fill: context?.theme === "light" ? "rgba(0, 0, 0, 0.1)" : "rgba(255, 255, 255, 0.1)",
+                  strokeDasharray: "3 3"
+                }}
+                wrapperStyle={{ zIndex: 100 }}
+                allowEscapeViewBox={{ x: true, y: true }}
+              />
+              <Legend
+                layout="horizontal"
+                align="center"
+                verticalAlign="top"
+                wrapperStyle={{
+                  paddingBottom: "15px",
+                  fontSize: "12px",
+                }}
+                formatter={legendFormatter}
+                payload={getUniqueLegendItems()}
+              />
 
-            {/* Render each "before" response category */}
-            {responseCategories.before.map((category, index) => (
-              <Bar
-                key={`before_${category}`}
-                dataKey={`before_${category}`}
-                name={`Before: ${category}`} // Add "Before: " prefix to make it clearer
-                fill={getColorForCategory("before", category, index)}
-                radius={[4, 4, 0, 0]}
-                stackId="before"
-              >
-                <LabelList
+              {/* Render each "before" response category */}
+              {responseCategories.before.map((category, index) => (
+                <Bar
+                  key={`before_${category}`}
                   dataKey={`before_${category}`}
-                  position="inside"
-                  style={{
-                    fontSize: "10px",
-                    fill: "#fff",
-                    fontWeight: "bold",
-                  }}
-                  formatter={(value) => (value > 0 ? value : "")}
-                />
-              </Bar>
-            ))}
+                  name={`Before: ${category}`} // Add "Before: " prefix to make it clearer
+                  fill={getColorForCategory("before", category, index)}
+                  radius={[4, 4, 0, 0]}
+                  stackId="before"
+                  cursor="pointer"
+                  isAnimationActive={true}
+                >
+                  <LabelList
+                    dataKey={`before_${category}`}
+                    position="inside"
+                    style={{
+                      fontSize: "10px",
+                      fill: "#fff",
+                      fontWeight: "bold",
+                    }}
+                    formatter={(value) => (value > 0 ? value : "")}
+                  />
+                </Bar>
+              ))}
 
-            {/* Render each "after" response category */}
-            {responseCategories.after.map((category, index) => (
-              <Bar
-                key={`after_${category}`}
-                dataKey={`after_${category}`}
-                name={`After: ${category}`} // Add "After: " prefix to make it clearer
-                fill={getColorForCategory(
-                  "after",
-                  category,
-                  index + responseCategories.before.length
-                )}
-                radius={[4, 4, 0, 0]}
-                stackId="after"
-              >
-                <LabelList
+              {/* Render each "after" response category */}
+              {responseCategories.after.map((category, index) => (
+                <Bar
+                  key={`after_${category}`}
                   dataKey={`after_${category}`}
-                  position="inside"
-                  style={{
-                    fontSize: "10px",
-                    fill: "#fff",
-                    fontWeight: "bold",
-                  }}
-                  formatter={(value) => (value > 0 ? value : "")}
-                />
-              </Bar>
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+                  name={`After: ${category}`} // Add "After: " prefix to make it clearer
+                  fill={getColorForCategory(
+                    "after",
+                    category,
+                    index + responseCategories.before.length
+                  )}
+                  radius={[4, 4, 0, 0]}
+                  stackId="after"
+                  cursor="pointer"
+                  isAnimationActive={true}
+                >
+                  <LabelList
+                    dataKey={`after_${category}`}
+                    position="inside"
+                    style={{
+                      fontSize: "10px",
+                      fill: "#fff",
+                      fontWeight: "bold",
+                    }}
+                    formatter={(value) => (value > 0 ? value : "")}
+                  />
+                </Bar>
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
-      <div style={{ marginLeft: "20px", marginTop: "20px" }}>
-        <MyDropDown
-          onChange={handleChange}
-          onTextChange={handleTextUpdate}
-          data={columns}
-          setSelectedQuestions={setSelectedQuestions}
-          chartData={chartData}
-          setChartData={setChartData}
-          columnSettings={columnSettings}
-        />
-      </div>
+
+      {/* MyDropDown component to select questions */}
+      <MyDropDown
+        data={columns}
+        onChange={handleChange}
+        setSelectedQuestions={setSelectedQuestions}
+        chartData={chartData}
+        setChartData={setChartData}
+        columnSettings={columnSettings}
+        selectedQuestion={selectedQuestion}
+        onRemoveQuestion={handleRemoveQuestion}
+      />
     </div>
   );
 };

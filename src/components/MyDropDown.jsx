@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TextField,
   ExpandCollapse,
@@ -7,7 +7,7 @@ import {
   Heading,
   Flex,
   Divider,
-  Text,
+  Text,  //real
 } from "@vibe/core";
 import "./MyDropDown.css";
 
@@ -18,7 +18,9 @@ function MyDropDown({
   setSelectedQuestions, 
   chartData, 
   setChartData,
-  columnSettings // Add the new prop
+  columnSettings,
+  selectedQuestion,
+  onRemoveQuestion
 }) {
   const [customTexts, setCustomTexts] = useState(Array(10).fill("")); // Store user-entered text for each question
   const [tempBeforeSelections, setTempBeforeSelections] = useState(
@@ -28,6 +30,23 @@ function MyDropDown({
     Array(10).fill(null)
   ); // After selections
   const [isDropdownVisible, setIsDropdownVisible] = useState(false); // Toggle dropdown visibility
+
+  // Initialize local state from props when component mounts or when selectedQuestion changes
+  useEffect(() => {
+    // Update customTexts from chartData
+    const newCustomTexts = chartData.map(item => 
+      item.displayName && !item.displayName.startsWith('Q') ? item.displayName : '');
+    setCustomTexts(newCustomTexts);
+    
+    // Update tempBeforeSelections and tempAfterSelections from selectedQuestion
+    if (selectedQuestion) {
+      const newTempBefore = selectedQuestion.map(item => item?.before || null);
+      const newTempAfter = selectedQuestion.map(item => item?.after || null);
+      
+      setTempBeforeSelections(newTempBefore);
+      setTempAfterSelections(newTempAfter);
+    }
+  }, [selectedQuestion, chartData]);
 
   // Handle text change for a specific question - only update local state
   const handleTextChange = (value, index) => {
@@ -106,6 +125,32 @@ function MyDropDown({
     }
   };
 
+  const handleClearSelection = (index) => {
+    // Clear local state
+    setTempBeforeSelections(prev => {
+      const newSelections = [...prev];
+      newSelections[index] = null;
+      return newSelections;
+    });
+    
+    setTempAfterSelections(prev => {
+      const newSelections = [...prev];
+      newSelections[index] = null;
+      return newSelections;
+    });
+    
+    setCustomTexts(prev => {
+      const newTexts = [...prev];
+      newTexts[index] = "";
+      return newTexts;
+    });
+    
+    // Call parent handler to clear the question
+    if (onRemoveQuestion) {
+      onRemoveQuestion(index);
+    }
+  };
+
   const handleOpenDropdown = () => {
     setIsDropdownVisible(true);
   };
@@ -114,8 +159,22 @@ function MyDropDown({
     setIsDropdownVisible(false);
   };
 
+  // Find selected option from data array based on stored selection
+  const findSelectedOption = (selectionObj) => {
+    if (!selectionObj || !data || data.length === 0) return null;
+    
+    // Get the name from the selection object
+    const selectedName = selectionObj.name;
+    
+    // Find matching option in dropdown options
+    const options = getDropdownOptions();
+    return options.find(option => option.value === selectedName) || null;
+  };
+
   // Create dropdown options with color information
   const getDropdownOptions = () => {
+    if (!data || data.length === 0) return [];
+    
     return data.map((item) => {
       const option = {
         label: item.name,
@@ -185,7 +244,7 @@ function MyDropDown({
                   <Text type="text3" weight="bold" color="secondary" className="field-label">Enter Custom Text</Text>
                   <TextField
                     className="dropdown-textfield"
-                    value={customTexts[index]}
+                    value={customTexts[index] || ""}
                     size="medium"
                     onChange={(value) => handleTextChange(value, index)}
                     placeholder="Enter custom text"
@@ -200,6 +259,7 @@ function MyDropDown({
                     onChange={(selected) =>
                       handleBeforeDropdownChange(selected, index)
                     }
+                    value={findSelectedOption(tempBeforeSelections[index])}
                   />
                   {/* After dropdown with label */}
                   <Text type="text3" weight="bold" color="secondary" className="field-label">After</Text>
@@ -211,14 +271,26 @@ function MyDropDown({
                     onChange={(selected) =>
                       handleAfterDropdownChange(selected, index)
                     }
+                    value={findSelectedOption(tempAfterSelections[index])}
                   />
-                  {/* Apply Button */}
-                  <Button
-                    className="apply-button"
-                    onClick={() => handleApplySelection(index)}
-                  >
-                    Apply
-                  </Button>
+                  {/* Action Buttons */}
+                  <Flex gap={8} className="button-container" justify="space-between" align="center">
+                    <Button
+                      className="apply-button"
+                      onClick={() => handleApplySelection(index)}
+                      disabled={!tempBeforeSelections[index] && !tempAfterSelections[index]}
+                    >
+                      Apply
+                    </Button>
+                    <Button
+                      className="clear-button"
+                      onClick={() => handleClearSelection(index)}
+                      kind="tertiary"
+                      disabled={!tempBeforeSelections[index] && !tempAfterSelections[index] && !customTexts[index]}
+                    >
+                      Clear
+                    </Button>
+                  </Flex>
                 </div>
               </ExpandCollapse>
             </div>

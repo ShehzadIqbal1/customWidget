@@ -220,9 +220,16 @@ h2{
   background-color: #f3f4f6;
 }
 
+/* Button container for proper alignment */
+.button-container {
+  display: flex;
+  gap: 10px; 
+  justify-content: space-between;
+}
+
 /* Apply button styling */
 .apply-button {
-  width: 100%;
+  flex: 1; 
   padding: 10px 0;
   background-color: #0068ff;
   color: white;
@@ -232,8 +239,29 @@ h2{
   font-weight: 500;
   cursor: pointer;
   margin-top: 20px;
+  transition: background-color 0.3s ease;
 }
 
 .apply-button:hover {
   background-color: #0055cc;
+}
+
+/* Clear button styling */
+.clear-button {
+  flex: 1; 
+  padding: 10px 0;
+  background-color: transparent;
+  color: #0068ff;
+  border: 2px solid ; 
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.clear-button:hover {
+  background-color: #e6f0ff; 
+  color: #0055cc;
 }
